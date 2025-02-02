@@ -5,8 +5,6 @@ import { metadataBulk, updatMetadata } from '../controllers/user';
 export const router = Router();
 // const jwtSecret = "asdasd"
 
-
-
 router.post("/signup", signup);
 
 router.post("/signin", signin)

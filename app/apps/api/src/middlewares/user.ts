@@ -1,4 +1,3 @@
-
 import jwt from "jsonwebtoken";
 import { jwtSecret } from "../constants/index";
 import { NextFunction, Request, Response } from "express";

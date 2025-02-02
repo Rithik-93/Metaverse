@@ -87,7 +87,7 @@ export const getElements =  async(req: Request, res: Response) => {
 
     const elements = client.element.findMany();
 
-    res.json({elements: (await elements).map(e => ({
+    res.json({elements: (await elements).map((e) => ({
         id: e.id,
         imageUrl: e.imageUrl,
         height: e.height,
@@ -101,7 +101,7 @@ export const getAvatars = async (req: Request, res: Response) => {
 
     const avatars = client.avatar.findMany()
 
-    res.json({avatars: (await avatars).map(x => ({
+    res.json({avatars: (await avatars).map((x: { id: any; imageUrl: any; name: any; }) => ({
         id: x.id,
         imageUrl: x.imageUrl,
         name: x.name
