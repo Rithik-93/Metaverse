@@ -5,7 +5,6 @@ import jwt from 'jsonwebtoken';
 import bcrypt, { compare } from 'bcryptjs'
 import { jwtSecret } from "../constants";
 
-
 export const signup = async (req: Request, res: Response) => {
     const data = signupSchema.safeParse(req.body);
 

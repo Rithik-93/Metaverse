@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { getAvatars, getElements, signin, signup } from '../controllers/public';
 import { metadataBulk, updatMetadata } from '../controllers/user';
+import { spaceRouter } from "../controllers/space";
 
 export const router = Router();
 // const jwtSecret = "asdasd"
@@ -18,3 +19,5 @@ router.get("/avatars", getAvatars)
 router.post("/user/metadata", updatMetadata);
 
 router.post("/user/metadata/bulk", metadataBulk);
+
+router.use("/space", spaceRouter)

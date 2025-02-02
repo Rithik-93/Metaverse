@@ -32,12 +32,16 @@ export class User {
     initHandlers() {
         this.ws.on("message", async (data) => {
             const parsedData = JSON.parse(data.toString());
-            switch (parsedData.type) {
+            console.log(typeof parsedData.type);
+            
+            switch (parsedData.type.toString()) {
                 case "join":
                     const spaceId = parsedData.payload.spaceId;
                     const token = parsedData.payload.token;
+                    console.log("no ")
                     const userId = (jwt.verify(token, JWT_PASSWORD) as JwtPayload).userId
                     if (!userId) {
+                        console.log("no user found")
                         this.ws.close()
                         return
                     }
@@ -48,9 +52,11 @@ export class User {
                         }
                     })
                     if (!space) {
+                        console.log("no space found");
                         this.ws.close()
                         return;
                     }
+                    console.log("here1-----------------------------");
                     this.spaceId = spaceId
                     RoomManager.getInstance().addUser(spaceId, this);
                     this.x = Math.floor(Math.random() * space?.width);

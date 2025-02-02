@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { jwtSecret } from "../constants";
 import { NextFunction, Request, Response } from "express";
+import { jwtSecret } from "../constants";
 
 export const userMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const header = req.headers["authorization"];
