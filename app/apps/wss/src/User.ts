@@ -110,9 +110,12 @@ export class User {
 
         // Validate movement (only allow one step at a time)
         if ((xDiff === 1 && yDiff === 0) || (xDiff === 0 && yDiff === 1)) {
+            console.log('hereeeeeeeeeeeeeeeeeeeeeeee');
+            
             this.position = { x: payload.x, y: payload.y };
             
             if (this.spaceId) {
+                console.log('hereeeeeeeeeeeeeeeeeeeeeeee22222222222222222');
                 RoomManager.getInstance().broadcast({
                     type: "movement",
                     payload: {
@@ -123,6 +126,7 @@ export class User {
             }
         } else {
             // Reject invalid movement
+            console.log('hereeeeeeeeeeeeeeeeeeeeeeee444444444444444444444444');
             this.send({
                 type: "movement-rejected",
                 payload: { position: this.position }

@@ -122,7 +122,6 @@ const Arena = () => {
         userId: currentUser.userId
       }
     }),'---------------------------',JSON.stringify(currentUser));
-    debugger
     ws.current.send(JSON.stringify({
       type: 'move',
       payload: {
@@ -131,6 +130,12 @@ const Arena = () => {
         userId: currentUser.userId
       }
     }));
+    setCurrentUser((prev) => ({
+      x: newX,
+      y: newY,
+      userId: prev.userId ?? ""
+    }));
+    // debugger
   };
 
   useEffect(() => {
