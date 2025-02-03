@@ -1,309 +1,226 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Phaser from 'phaser';
-
-interface GameParams {
-    spaceId: string;
-    token: string;
-}
-
-interface SpawnPoint {
-    x: number;
-    y: number;
-}
+import { useEffect, useRef, useState } from 'react';
 
 interface User {
-    id: string;
+  x: number;
+  y: number;
+  userId: string;
 }
 
-interface WSMessage {
-    type: string;
-    payload: {
-        spaceId?: string;
-        token?: string;
-        spawn?: SpawnPoint;
-        users?: User[];
-        userId?: string;
-        x?: number;
-        y?: number;
-    };
+interface Params {
+  token: string;
+  spaceId: string;
 }
 
-const SPRITE_WIDTH = 32;  // Adjust based on your sprite size
-const SPRITE_HEIGHT = 32; // Adjust based on your sprite size
+const Arena = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [currentUser, setCurrentUser] = useState<User>();
+  const [users, setUsers] = useState<Map<string, User>>(new Map());
+  const [params, setParams] = useState<Params>({ token: '', spaceId: '' });
+  const ws = useRef<WebSocket | null>(null);
 
-const GameComponent: React.FC = () => {
-    const gameRef = useRef<HTMLDivElement>(null);
-    const [params, setParams] = useState<GameParams>({ spaceId: '', token: '' });
-    const [gameInstance, setGameInstance] = useState<Phaser.Game | null>(null);
-
-    useEffect(() => {
-        let ws: WebSocket | null = null;
-        let game: Phaser.Game | null = null;
-        let players: Map<string, Phaser.GameObjects.Sprite> = new Map();
-        let playerSprite: Phaser.GameObjects.Sprite | null = null;
-        let cursors: Phaser.Types.Input.Keyboard.CursorKeys | null = null;
-        let facing: 'front' | 'back' | 'side' = 'front';
-        let lastDirection: 'left' | 'right' = 'right';
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const spaceId = urlParams.get('spaceId') || '';
-        const token = urlParams.get('token') || '';
-
-        setParams({ spaceId, token });
-
-        class MainScene extends Phaser.Scene {
-            constructor() {
-                super({ key: 'MainScene' });
-            }
-
-            preload(): void {
-                // Load the character sprite sheet
-                this.load.spritesheet('character', '/sprites/hero-sheet.png', {
-                    frameWidth: SPRITE_WIDTH,
-                    frameHeight: SPRITE_HEIGHT
-                });
-
-                // Create a temporary colored rectangle for tiles
-                const tileGraphics = this.add.graphics();
-                tileGraphics.fillStyle(0x333333);
-                tileGraphics.fillRect(0, 0, 32, 32);
-                tileGraphics.generateTexture('tiles', 32, 32);
-                tileGraphics.destroy();
-            }
-
-            create(): void {
-                // Create animations for each direction
-                this.anims.create({
-                    key: 'walk-front',
-                    frames: this.anims.generateFrameNumbers('character', { 
-                        frames: [0, 1, 2]  // Adjust frame numbers based on your sprite sheet
-                    }),
-                    frameRate: 8,
-                    repeat: -1
-                });
-
-                this.anims.create({
-                    key: 'walk-back',
-                    frames: this.anims.generateFrameNumbers('character', { 
-                        frames: [3, 4, 5]  // Adjust frame numbers based on your sprite sheet
-                    }),
-                    frameRate: 8,
-                    repeat: -1
-                });
-
-                this.anims.create({
-                    key: 'walk-side',
-                    frames: this.anims.generateFrameNumbers('character', { 
-                        frames: [6, 7, 8]  // Adjust frame numbers based on your sprite sheet
-                    }),
-                    frameRate: 8,
-                    repeat: -1
-                });
-
-                this.anims.create({
-                    key: 'idle-front',
-                    frames: this.anims.generateFrameNumbers('character', { 
-                        frames: [1]  // Adjust frame number based on your sprite sheet
-                    }),
-                    frameRate: 1,
-                    repeat: 0
-                });
-
-                this.anims.create({
-                    key: 'idle-back',
-                    frames: this.anims.generateFrameNumbers('character', { 
-                        frames: [4]  // Adjust frame number based on your sprite sheet
-                    }),
-                    frameRate: 1,
-                    repeat: 0
-                });
-
-                this.anims.create({
-                    key: 'idle-side',
-                    frames: this.anims.generateFrameNumbers('character', { 
-                        frames: [7]  // Adjust frame number based on your sprite sheet
-                    }),
-                    frameRate: 1,
-                    repeat: 0
-                });
-
-                // Create background grid
-                for (let y = 0; y < 20; y++) {
-                    for (let x = 0; x < 20; x++) {
-                        const tile = this.add.sprite(x * 32, y * 32, 'tiles');
-                        tile.setOrigin(0, 0);
-                        tile.setAlpha(0.3);
-                    }
-                }
-
-                try {
-                    ws = new WebSocket('ws://localhost:3001');
-
-                    ws.onopen = () => {
-                        console.log('WebSocket Connected');
-                        if (ws) {
-                            ws.send(JSON.stringify({
-                                type: 'join',
-                                payload: { spaceId, token }
-                            }));
-                        }
-                    };
-
-                    ws.onmessage = (event: MessageEvent) => {
-                        const message: WSMessage = JSON.parse(event.data);
-
-                        switch (message.type) {
-                            case 'space-joined':
-                                if (message.payload.spawn) {
-                                    const { x, y } = message.payload.spawn;
-                                    playerSprite = this.add.sprite(x * 32, y * 32, 'character');
-                                    playerSprite.play('idle-front');
-                                }
-
-                                message.payload.users?.forEach(user => {
-                                    const otherPlayer = this.add.sprite(0, 0, 'character');
-                                    otherPlayer.play('idle-front');
-                                    players.set(user.id, otherPlayer);
-                                });
-                                break;
-
-                            case 'user-joined':
-                                if (message.payload.x !== undefined && message.payload.y !== undefined && message.payload.userId) {
-                                    const newPlayer = this.add.sprite(
-                                        message.payload.x * 32,
-                                        message.payload.y * 32,
-                                        'character'
-                                    );
-                                    newPlayer.play('idle-front');
-                                    players.set(message.payload.userId, newPlayer);
-                                }
-                                break;
-
-                            case 'movement':
-                                if (message.payload.userId && message.payload.x !== undefined && message.payload.y !== undefined) {
-                                    const player = players.get(message.payload.userId);
-                                    if (player) {
-                                        player.x = message.payload.x * 32;
-                                        player.y = message.payload.y * 32;
-                                    }
-                                }
-                                break;
-
-                            case 'user-left':
-                                if (message.payload.userId) {
-                                    const leftPlayer = players.get(message.payload.userId);
-                                    if (leftPlayer) {
-                                        leftPlayer.destroy();
-                                        players.delete(message.payload.userId);
-                                    }
-                                }
-                                break;
-
-                            case 'movement-rejected':
-                                if (playerSprite && message.payload.x !== undefined && message.payload.y !== undefined) {
-                                    playerSprite.x = message.payload.x * 32;
-                                    playerSprite.y = message.payload.y * 32;
-                                }
-                                break;
-                        }
-                    };
-                } catch (error) {
-                    console.error('Error setting up WebSocket:', error);
-                }
-
-                cursors = this.input.keyboard.createCursorKeys();
-            }
-
-            update(): void {
-                if (!playerSprite || !cursors || !ws) return;
-
-                const currentX = Math.floor(playerSprite.x / 32);
-                const currentY = Math.floor(playerSprite.y / 32);
-                let isMoving = false;
-
-                if (cursors.left.isDown) {
-                    ws.send(JSON.stringify({
-                        type: 'move',
-                        payload: { x: currentX - 1, y: currentY }
-                    }));
-                    facing = 'side';
-                    lastDirection = 'left';
-                    playerSprite.flipX = true;
-                    isMoving = true;
-                }
-                else if (cursors.right.isDown) {
-                    ws.send(JSON.stringify({
-                        type: 'move',
-                        payload: { x: currentX + 1, y: currentY }
-                    }));
-                    facing = 'side';
-                    lastDirection = 'right';
-                    playerSprite.flipX = false;
-                    isMoving = true;
-                }
-                else if (cursors.up.isDown) {
-                    ws.send(JSON.stringify({
-                        type: 'move',
-                        payload: { x: currentX, y: currentY - 1 }
-                    }));
-                    facing = 'back';
-                    isMoving = true;
-                }
-                else if (cursors.down.isDown) {
-                    ws.send(JSON.stringify({
-                        type: 'move',
-                        payload: { x: currentX, y: currentY + 1 }
-                    }));
-                    facing = 'front';
-                    isMoving = true;
-                }
-
-                // Update animation based on movement state
-                if (isMoving) {
-                    playerSprite.play(`walk-${facing}`, true);
-                } else {
-                    playerSprite.play(`idle-${facing}`, true);
-                }
-            }
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token') || '';
+    const spaceId = urlParams.get('spaceId') || '';
+    setParams({ token, spaceId });
+    
+    ws.current = new WebSocket('ws://localhost:3001');
+    const wsss = ws.current;
+    wsss.onopen = () => {
+      wsss.send(JSON.stringify({
+        type: 'join',
+        payload: {
+          spaceId,
+          token
         }
+      }));
+    };
 
-        const config: Phaser.Types.Core.GameConfig = {
-            type: Phaser.AUTO,
-            parent: gameRef.current,
-            width: 640,
-            height: 640,
-            backgroundColor: '#2d2d2d',
-            scene: MainScene,
-            pixelArt: true,
-            physics: {
-                default: 'arcade',
-                arcade: {
-                    gravity: { y: 0, x: 0 }
-                }
-            },
-            audio: {
-                noAudio: true
-            }
-        };
+    wsss.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      handleWebSocketMessage(message);
+    };
 
-        game = new Phaser.Game(config);
-        setGameInstance(game);
+    return () => {
+      if (wsss.readyState === WebSocket.OPEN) {
+        wsss.close();
+      }
+    };
+  }, []);
 
-        return () => {
-            if (game) {
-                game.destroy(true);
-            }
-            if (ws) {
-                ws.close();
-            }
-        };
-    }, []);
+  const handleWebSocketMessage = (message: any) => {
+    console.log(JSON.stringify(message))
+    switch (message.type) {
+      case 'space-joined':
+        setCurrentUser({
+          x: message.payload.spawn.x,
+          y: message.payload.spawn.y,
+          userId: message.payload.userId
+        });
 
-    return (
-        <div className="w-full max-w-4xl mx-auto p-4">
-            <div className="aspect-square bg-gray-800 rounded-lg overflow-hidden" ref={gameRef} />
-        </div>
-    );
+        const userMap = new Map<string, User>();
+        message.payload.users.forEach((user: User) => {
+          userMap.set(user.userId, user);
+        });
+        setUsers(userMap);
+        break;
+
+      case 'user-joined':
+        setUsers(prev => {
+          const newUsers = new Map(prev);
+          newUsers.set(message.payload.userId, {
+            x: message.payload.x,
+            y: message.payload.y,
+            userId: message.payload.userId
+          });
+          return newUsers;
+        });
+        break;
+
+      case 'movement':
+        setUsers(prev => {
+          const newUsers = new Map(prev);
+          const user = newUsers.get(message.payload.userId);
+          if (user) {
+            newUsers.set(message.payload.userId, {
+              ...user,
+              x: message.payload.x,
+              y: message.payload.y
+            });
+          }
+          return newUsers;
+        });
+        break;
+
+      case 'movement-rejected':
+        if(!message.payload) return;
+        
+        setCurrentUser({
+          x: message.payload.x,
+          y: message.payload.y,
+          userId: message.payload.userId
+        });
+        break;
+
+      case 'user-left':
+        setUsers(prev => {
+          const newUsers = new Map(prev);
+          newUsers.delete(message.payload.userId);
+          return newUsers;
+        });
+        break;
+    }
+  };
+
+  const handleMove = (newX: number, newY: number) => {
+    if (!currentUser || !ws.current) return;
+    console.log(JSON.stringify({
+      type: 'move',
+      payload: {
+        x: newX,
+        y: newY,
+        userId: currentUser.userId
+      }
+    }),'---------------------------',JSON.stringify(currentUser));
+    debugger
+    ws.current.send(JSON.stringify({
+      type: 'move',
+      payload: {
+        x: newX,
+        y: newY,
+        userId: currentUser.userId
+      }
+    }));
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid
+    ctx.strokeStyle = '#eee';
+    for (let i = 0; i < canvas.width; i += 50) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, canvas.height);
+      ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 50) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+
+    // Draw current user
+    if (currentUser) {
+      ctx.beginPath();
+      ctx.fillStyle = '#FF6B6B';
+      ctx.arc(currentUser.x * 50, currentUser.y * 50, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('You', currentUser.x * 50, currentUser.y * 50 + 40);
+    }
+
+    // Draw other users
+    users.forEach(user => {
+      ctx.beginPath();
+      ctx.fillStyle = '#4ECDC4';
+      ctx.arc(user.x * 50, user.y * 50, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.font = '14px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`User ${user.userId}`, user.x * 50, user.y * 50 + 40);
+    });
+  }, [currentUser, users, canvasRef]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!currentUser) return;
+
+    const { x, y } = currentUser;
+    switch (e.key) {
+      case 'ArrowUp':
+        handleMove(x, y - 1);
+        break;
+      case 'ArrowDown':
+        handleMove(x, y + 1);
+        break;
+      case 'ArrowLeft':
+        handleMove(x - 1, y);
+        break;
+      case 'ArrowRight':
+        handleMove(x + 1, y);
+        break;
+    }
+  };
+
+  return (
+    <div className="p-4" onKeyDown={(e) => handleKeyDown(e)} tabIndex={0}>
+      <h1 className="text-2xl font-bold mb-4">Arena</h1>
+      <div className="mb-4">
+        <p className="text-sm text-gray-600">Token: {params.token}</p>
+        <p className="text-sm text-gray-600">Space ID: {params.spaceId}</p>
+        <p className="text-sm text-gray-600">Connected Users: {users.size + (currentUser ? 1 : 0)}</p>
+      </div>
+      <div className="border rounded-lg overflow-hidden">
+        <canvas
+          ref={canvasRef}
+          width={2000}
+          height={2000} 
+          className="bg-white"
+        />
+      </div>
+      <p className="mt-2 text-sm text-gray-500">Use arrow keys to move your avatar</p>
+    </div>
+  );
 };
 
-export default GameComponent;
+export default Arena;

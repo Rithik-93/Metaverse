@@ -35,9 +35,9 @@ export class RoomManager {
             return;
         }
         this.rooms.get(roomId)?.forEach((u) => {
-            if (u.id !== user.id) {
+            // if (u.id !== user.id) {
                 u.send(message);
-            }
+            // }
         });
     }
 }
