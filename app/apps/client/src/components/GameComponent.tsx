@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { deepConvertMapToObject } from '../helpers/toJSON';
 
 // Comprehensive type definitions
 interface User {
@@ -110,8 +111,9 @@ const Arena = () => {
   // Comprehensive message handler
   const handleWebSocketMessage = (message: WSMessage) => {
     // console.log('Received message:', JSON.stringify(message));
-    console.log((users),"---------------------------");
     
+    console.log((deepConvertMapToObject(users)), "---------------------------");
+
     switch (message.type) {
       case 'space-joined':
         handleSpaceJoined(message.payload);
