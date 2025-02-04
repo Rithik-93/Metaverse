@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { deepConvertMapToObject } from '../helpers/toJSON';
 
 // Comprehensive type definitions
 interface User {
@@ -35,25 +34,21 @@ const Arena = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [error, setError] = useState<string | null>(null);
 
-  // Request tracking for potential future use
   const requestTracker = useRef({
     counter: 0,
     pendingRequests: new Map<string, (response: any) => void>()
   });
 
-  // WebSocket connection setup
   const connectWebSocket = () => {
-    // Close existing connection if any
+
     if (wsRef.current) {
       wsRef.current.close();
     }
 
-    // Extract parameters from URL
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
     const spaceId = urlParams.get('spaceId');
 
-    // Validate parameters
     if (!token || !spaceId) {
       setError('Missing token or space ID');
       return;
@@ -61,13 +56,11 @@ const Arena = () => {
 
     setParams({ token, spaceId });
 
-    // Create WebSocket connection
     wsRef.current = new WebSocket('ws://localhost:3001');
     const ws = wsRef.current;
 
     ws.onopen = () => {
       setConnectionStatus('connected');
-      // Send join request immediately upon connection
       sendMessage('join', { spaceId, token });
     };
 
@@ -91,7 +84,6 @@ const Arena = () => {
     };
   };
 
-  // Send message with request tracking
   const sendMessage = <T = any>(type: string, payload: T): string => {
     if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
       throw new Error('WebSocket is not connected');
@@ -111,8 +103,8 @@ const Arena = () => {
   // Comprehensive message handler
   const handleWebSocketMessage = (message: WSMessage) => {
     // console.log('Received message:', JSON.stringify(message));
-    
-    console.log((deepConvertMapToObject(users)), "---------------------------");
+
+    // console.log((deepConvertMapToObject(users)), "---------------------------");
 
     switch (message.type) {
       case 'space-joined':
@@ -147,7 +139,6 @@ const Arena = () => {
     }));
   }
 
-  // Handle space join message
   const handleSpaceJoined = (payload: any) => {
     setCurrentUser({
       id: 'current_user',
@@ -175,6 +166,7 @@ const Arena = () => {
 
   // Handle user movement
   const handleUserMovement = (payload: User & { x: number; y: number }) => {
+    console.log(JSON.stringify(payload, null, 2), "-------------------------------------------------------");
     setUsers(prev => {
       const newUsers = new Map(prev);
       newUsers.set(payload.id, {
@@ -329,7 +321,7 @@ const Arena = () => {
       ctx.fillStyle = '#000';
       ctx.font = '14px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(`User ${user.id}`, user.x * 50, user.y * 50 + 40);
+      ctx.fillText(`User ${user.userId}`, user.x * 50, user.y * 50 + 40);
     });
   }, [currentUser, users, canvasRef]);
 
