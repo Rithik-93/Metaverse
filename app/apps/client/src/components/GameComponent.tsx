@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
 
-// Comprehensive type definitions
 interface User {
   id?: string;
   userId?: string;
@@ -102,9 +102,6 @@ const Arena = () => {
 
   // Comprehensive message handler
   const handleWebSocketMessage = (message: WSMessage) => {
-    // console.log('Received message:', JSON.stringify(message));
-
-    // console.log((deepConvertMapToObject(users)), "---------------------------");
 
     switch (message.type) {
       case 'space-joined':
@@ -147,10 +144,9 @@ const Arena = () => {
       y: payload.spawn.y
     });
 
-    // Populate existing users
     const newUsers = new Map<string, User>();
     payload.users.forEach((user: User) => {
-      newUsers.set(user.id, user);
+      newUsers.set(user.id as string, user);
     });
     setUsers(newUsers);
   };
@@ -159,17 +155,15 @@ const Arena = () => {
   const handleUserJoined = (payload: User) => {
     setUsers(prev => {
       const newUsers = new Map(prev);
-      newUsers.set(payload.id, payload);
+      newUsers.set(payload.id as string, payload);
       return newUsers;
     });
   };
 
-  // Handle user movement
   const handleUserMovement = (payload: User & { x: number; y: number }) => {
-    console.log(JSON.stringify(payload, null, 2), "-------------------------------------------------------");
     setUsers(prev => {
       const newUsers = new Map(prev);
-      newUsers.set(payload.id, {
+      newUsers.set(payload.id as string, {
         id: payload.id,
         userId: payload.userId,
         x: payload.x,
@@ -234,14 +228,12 @@ const Arena = () => {
     if (!currentUser) return;
 
     try {
-      // Optimistically attempt move (for immediate UI feedback)
       setCurrentUser(prev => prev ? {
         ...prev,
         x: newX,
         y: newY
       } : null);
 
-      // Send move request
       sendMessage('move', {
         x: newX,
         y: newY,
@@ -282,22 +274,20 @@ const Arena = () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid
     ctx.strokeStyle = '#eee';
-    for (let i = 0; i < canvas.width; i += 50) {
+    for (let i = 0; i < canvas.width; i += 30) {
       ctx.beginPath();
       ctx.moveTo(i, 0);
       ctx.lineTo(i, canvas.height);
       ctx.stroke();
     }
-    for (let i = 0; i < canvas.height; i += 50) {
+    for (let i = 0; i < canvas.height; i += 30) {
       ctx.beginPath();
       ctx.moveTo(0, i);
       ctx.lineTo(canvas.width, i);
       ctx.stroke();
     }
 
-    // Draw current user
     if (currentUser) {
       ctx.beginPath();
       ctx.fillStyle = '#FF6B6B';
@@ -309,9 +299,7 @@ const Arena = () => {
       ctx.fillText('You', currentUser.x * 50, currentUser.y * 50 + 40);
     }
 
-    // Draw other users
     users.forEach(user => {
-      // Skip drawing the current user again
       if (user.id === currentUser?.id) return;
 
       ctx.beginPath();
@@ -327,50 +315,74 @@ const Arena = () => {
 
   return (
     <div
-      className="p-4 min-h-screen flex flex-col"
+      className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-8"
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
-      <h1 className="text-2xl font-bold mb-4">Arena</h1>
+      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl">
+        <div className="p-8">
+          {/* Header Section */}
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-4xl font-bold text-gray-800">Arena</h1>
+            <div
+              className={`px-4 py-2 rounded-full text-sm font-medium ${connectionStatus === "connected"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+                }`}
+            >
+              {connectionStatus}
+            </div>
+          </div>
 
-      {/* Connection and Error Handling */}
-      <div className="mb-4">
-        <p className="text-sm text-gray-600">
-          Connection Status:
-          <span
-            className={`ml-2 ${connectionStatus === 'connected'
-              ? 'text-green-500'
-              : 'text-red-500'
-              }`}
-          >
-            {connectionStatus}
-          </span>
-        </p>
-        {error && (
-          <p className="text-sm text-red-500 mt-2">
-            Error: {error}
-          </p>
-        )}
-        <p className="text-sm text-gray-600">Token: {params.token}</p>
-        <p className="text-sm text-gray-600">Space ID: {params.spaceId}</p>
-        <p className="text-sm text-gray-600">
-          Connected Users: {users.size + (currentUser ? 1 : 0)}
-        </p>
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 rounded-lg">
+              <p className="text-sm text-red-600">Error: {error}</p>
+            </div>
+          )}
+
+          {/* Info Grid */}
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-600">Token</p>
+              <p className="text-gray-800 truncate">{params.token}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-600">Space ID</p>
+              <p className="text-gray-800 truncate">{params.spaceId}</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-600">Connected Users</p>
+              <p className="text-gray-800">{users.size + (currentUser ? 1 : 0)}</p>
+            </div>
+          </div>
+
+          {/* Canvas Section */}
+          <div className="relative rounded-xl overflow-hidden border-2 border-gray-200">
+            <canvas
+              ref={canvasRef}
+              width={2000}
+              height={2000}
+              className="bg-white w-full h-[65vh]"
+            />
+
+            {/* Controls Overlay */}
+            <div className="absolute bottom-6 right-6 bg-white rounded-xl shadow-lg p-4 bg-opacity-90">
+              <p className="text-sm font-medium text-gray-700 mb-3 text-center">
+                Use arrow keys to move
+              </p>
+              <div className="flex flex-col items-center gap-2">
+                <ArrowUp className="w-6 h-6 text-gray-700" />
+                <div className="flex gap-6">
+                  <ArrowLeft className="w-6 h-6 text-gray-700" />
+                  <ArrowDown className="w-6 h-6 text-gray-700" />
+                  <ArrowRight className="w-6 h-6 text-gray-700" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Canvas Rendering */}
-      <div className="flex-grow border rounded-lg overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          width={2000}
-          height={2000}
-          className="bg-white w-full h-full"
-        />
-      </div>
-
-      <p className="mt-2 text-sm text-gray-500">
-        Use arrow keys to move your avatar
-      </p>
     </div>
   );
 };
