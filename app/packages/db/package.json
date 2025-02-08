@@ -6,7 +6,7 @@
     "build": "npx tsc -b"
   },
   "exports": {
-    "./client": "./src/index.ts"
+    "./client": "./dist/index.js"
   },
   "keywords": [],
   "author": "",

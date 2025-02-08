@@ -11,7 +11,6 @@ const CreateSpaceSchema = z.object({
     mapId: z.string().optional(),
 })
 
-
 spaceRouter.post("/", userMiddleware, async (req, res) => {
     
     const parsedData = CreateSpaceSchema.safeParse(req.body)
@@ -61,7 +60,7 @@ spaceRouter.post("/", userMiddleware, async (req, res) => {
         });
 
         await client.spaceElements.createMany({
-            data: map.mapElements.map(e => ({
+            data: map.mapElements.map((e: any) => ({
                 spaceId: space.id,
                 elementId: e.elementId,
                 x: e.x!,

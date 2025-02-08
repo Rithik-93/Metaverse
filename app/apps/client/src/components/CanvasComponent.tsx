@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react';
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
@@ -52,6 +54,7 @@ const Arena = () => {
 
     if (!token || !spaceId) {
       setError('Missing token or space ID');
+      setConnectionStatus('disconnected')
       return;
     }
 

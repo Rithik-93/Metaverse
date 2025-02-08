@@ -86,7 +86,7 @@ export const getElements =  async(req: Request, res: Response) => {
 
     const elements = client.element.findMany();
 
-    res.json({elements: (await elements).map((e) => ({
+    res.json({elements: (await elements).map((e:any) => ({
         id: e.id,
         imageUrl: e.imageUrl,
         height: e.height,

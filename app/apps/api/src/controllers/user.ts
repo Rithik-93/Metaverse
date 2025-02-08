@@ -46,7 +46,7 @@ export const metadataBulk = async (req: Request, res: Response) => {
     })
 
     res.json({
-        avatars: metadata.map(m => ({
+        avatars: metadata.map((m: any) => ({
             userId: m.id,
             avatarId: m.avatar?.imageUrl
         }))
