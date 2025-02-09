@@ -33,7 +33,8 @@ export function CreateSpace() {
       const res = await axios.post(url, payload, { headers });
       if (res.status === 200) {
         const spaceId = res.data.spaceId;
-          router.push(`/arena/?spaceId=${spaceId}&token=${token}`);
+        const trimmedToken = token?.split(' ')[1]
+          router.push(`/arena/?spaceId=${spaceId}&token=${trimmedToken}`);
       }
       console.log(res.data);
   } catch (error) {

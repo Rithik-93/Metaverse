@@ -12,7 +12,7 @@ const CreateSpaceSchema = z.object({
 })
 
 spaceRouter.post("/", userMiddleware, async (req, res) => {
-    
+
     const parsedData = CreateSpaceSchema.safeParse(req.body)
     if (!parsedData.success) {
         console.log(JSON.stringify(parsedData))
@@ -42,13 +42,11 @@ spaceRouter.post("/", userMiddleware, async (req, res) => {
             height: true
         }
     })
-    console.log("after")
     if (!map) {
         res.status(400).json({ message: "Map not found" })
         return
     }
-    console.log("map.mapElements.length")
-    console.log(map.mapElements.length)
+
     let space = await client.$transaction(async () => {
         const space = await client.space.create({
             data: {
@@ -71,6 +69,15 @@ spaceRouter.post("/", userMiddleware, async (req, res) => {
         return space;
 
     })
-    console.log("space crated")
     res.json({ spaceId: space.id })
+})
+
+spaceRouter.get("/getspaces", userMiddleware, async (req, res, next) => {
+    try {
+        const spaces = await client.space.findMany();
+
+        res.json(spaces);
+    } catch (error) {
+        next(error);
+    }
 })

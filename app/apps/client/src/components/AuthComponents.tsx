@@ -18,7 +18,7 @@ export function Signin() {
             const res = await axios.post(url, payload);
             if (res.status === 200) {
                 window.localStorage.setItem('token', res.data.token)
-                router.push('/create');
+                router.push('/spaces');
             }
             console.log(res.data);
         } catch (error) {

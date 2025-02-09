@@ -3,6 +3,8 @@ import { jwtSecret } from "../constants";
 import { NextFunction, Request, Response } from "express";
 
 export const userMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    console.log("asdaddddddddddddddddddddddd");
+    
     const header = req.headers["authorization"];
     const token = header?.split(" ")[1];
     console.log(req.route.path)
