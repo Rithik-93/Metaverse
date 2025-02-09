@@ -2,6 +2,7 @@ import Image from "next/image"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { API } from "@/config"
 
 interface SpaceProps {
   space: {
@@ -23,7 +24,7 @@ export default function SpaceCard({ space }: SpaceProps) {
     }
 
   return (
-    <Card className="overflow-hidden" onClick={() => router.push(`${process.env.NEXT_PUBLIC_API_URL}/arena/?spaceId=${spaceId}&token=${token}`)}>
+    <Card className="overflow-hidden" onClick={() => router.push(`${API}/arena/?spaceId=${spaceId}&token=${token}`)}>
       <CardContent className="p-0">
         {space.thumbnail ? (
           <Image

@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import axios from 'axios'
 import { useRouter } from 'next/navigation';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { API } from '@/config';
 
 export function Auth() {
-    const [isSignIn, setIsSignIn] = useState(true);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -15,7 +15,7 @@ export function Auth() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const url = `${process.env.NEXT_PUBLIC_GAME_API}/api/v1/signup`;
+            const url = `${API}/api/v1/signup`;
             const payload = { username, password, type: "user" }
             const res = await axios.post(url, payload);
             if (res.status === 200) {

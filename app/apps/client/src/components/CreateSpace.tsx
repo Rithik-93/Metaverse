@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Layout, Ruler, Map } from 'lucide-react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { API } from '@/config';
 
 export function CreateSpace() {
   const [name, setName] = useState('');
@@ -27,7 +28,7 @@ export function CreateSpace() {
 
     try {
       const token = window.localStorage.getItem('token')
-      const url = `${process.env.NEXT_PUBLIC_GAME_API}/api/v1/space`;
+      const url = `${API}/api/v1/space`;
       const payload = { name, dimensions, mapId }
       const headers = { Authorization: token };
       const res = await axios.post(url, payload, { headers });

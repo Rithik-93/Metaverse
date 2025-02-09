@@ -6,6 +6,7 @@ import Loading from "../Loading"
 import ErrorMessage from "../Error"
 import { Button } from "../ui/button"
 import { useRouter } from "next/navigation"
+import { API } from "@/config"
 
 interface Space {
     id: string
@@ -25,7 +26,7 @@ export default function SpacesList() {
     useEffect(() => {
         async function fetchSpaces() {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_GAME_API}/api/v1/spaces/getspaces`)
+                const response = await fetch(`${API}/api/v1/space/getspaces`)
                 if (!response.ok) {
                     throw new Error("Failed to fetch spaces")
                 }

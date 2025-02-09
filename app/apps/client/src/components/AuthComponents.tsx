@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import axios from 'axios'
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { API } from '@/config';
 
 export function Signin() {
     const [username, setUsername] = useState('');
@@ -13,11 +14,11 @@ export function Signin() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const url = `${process.env.NEXT_PUBLIC_GAME_API}/api/v1/signin`;
+            const url = `${API}/api/v1/signin`;
             const payload = { username, password }
             const res = await axios.post(url, payload);
             if (res.status === 200) {
-                window.localStorage.setItem('token', res.data.token)
+                window.localStorage.setItem('token', `Bearer ${res.data.token}`)
                 router.push('/spaces');
             }
             console.log(res.data);

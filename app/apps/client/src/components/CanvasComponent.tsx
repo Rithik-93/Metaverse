@@ -3,6 +3,7 @@
 import React from 'react';
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from 'lucide-react'
+import { WS } from '@/config';
 
 interface User {
   id?: string;
@@ -37,8 +38,6 @@ const Arena = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [error, setError] = useState<string | null>(null);
 
-  const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3002';
-
   const requestTracker = useRef({
     counter: 0,
     pendingRequests: new Map<string, (response: any) => void>()
@@ -62,7 +61,12 @@ const Arena = () => {
 
     setParams({ token, spaceId });
 
-    wsRef.current = new WebSocket(WS_URL);
+    if (!WS) {
+      setError('WebSocket URL is not defined');
+      setConnectionStatus('disconnected');
+      return;
+    }
+    wsRef.current = new WebSocket(WS);
     const ws = wsRef.current;
 
     ws.onopen = () => {

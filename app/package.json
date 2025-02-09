@@ -7,6 +7,7 @@
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
+  "type": "module",
   "devDependencies": {
     "prettier": "^3.2.5",
     "turbo": "^2.2.3",
