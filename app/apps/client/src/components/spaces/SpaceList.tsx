@@ -26,7 +26,14 @@ export default function SpacesList() {
     useEffect(() => {
         async function fetchSpaces() {
             try {
-                const response = await fetch(`${API}/api/v1/space/getspaces`)
+                const token = window.localStorage.getItem('token');
+                const headers = {
+                    Authorization: token || ""
+                }
+                const response = await fetch(`${API}/api/v1/space/getspaces`, {
+                    method: 'GET',
+                    headers: headers
+                })
                 if (!response.ok) {
                     throw new Error("Failed to fetch spaces")
                 }

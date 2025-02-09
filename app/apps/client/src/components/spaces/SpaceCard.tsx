@@ -24,7 +24,7 @@ export default function SpaceCard({ space }: SpaceProps) {
     }
 
   return (
-    <Card className="overflow-hidden" onClick={() => router.push(`${API}/arena/?spaceId=${spaceId}&token=${token}`)}>
+    <Card className="overflow-hidden" onClick={() => router.push(`/arena/?spaceId=${spaceId}&token=${token}`)}>
       <CardContent className="p-0">
         {space.thumbnail ? (
           <Image

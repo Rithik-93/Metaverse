@@ -83,11 +83,11 @@ const Arena = () => {
       }
     };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-      setConnectionStatus('disconnected');
-      setError('WebSocket connection failed');
-    };
+    // ws.onerror = (error) => {
+    //   console.error('WebSocket error:', error);
+    //   setConnectionStatus('disconnected');
+    //   setError('WebSocket connection failed');
+    // };
 
     ws.onclose = () => {
       setConnectionStatus('disconnected');
