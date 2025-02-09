@@ -1,13 +1,13 @@
 import React from 'react';
-import { Signin } from '@/components/AuthComponents';
+import { CreateSpace } from '@/components/CreateSpace';
 
-function SignIn() {
+function Create() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Signin/>
+      <CreateSpace/>
     </div>
   );
 }
 
-export default SignIn;
+export default Create;

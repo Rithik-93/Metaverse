@@ -1,25 +1,22 @@
+'use client'
+
 import React, { useState } from 'react';
 import { Layout, Ruler, Map } from 'lucide-react';
+import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
-interface CreateSpaceProps {
-  onSubmit: (data: {
-    name: string;
-    dimensions: string;
-    mapId?: string;
-  }) => void;
-}
-
-export function CreateSpace({ onSubmit }: CreateSpaceProps) {
+export function CreateSpace() {
   const [name, setName] = useState('');
   const [dimensions, setDimensions] = useState('');
   const [mapId, setMapId] = useState('');
+  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
   const validateDimensions = (value: string) => {
     return /^[0-9]{1,4}x[0-9]{1,4}$/.test(value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -28,11 +25,20 @@ export function CreateSpace({ onSubmit }: CreateSpaceProps) {
       return;
     }
 
-    onSubmit({
-      name,
-      dimensions,
-      ...(mapId ? { mapId } : {}),
-    });
+    try {
+      const token = window.localStorage.getItem('token')
+      const url = `${process.env.NEXT_PUBLIC_GAME_API}/api/v1/space`;
+      const payload = { name, dimensions, mapId }
+      const headers = { Authorization: token };
+      const res = await axios.post(url, payload, { headers });
+      if (res.status === 200) {
+        const spaceId = res.data.spaceId;
+          router.push(`/arena/?spaceId=${spaceId}&token=${token}`);
+      }
+      console.log(res.data);
+  } catch (error) {
+      console.error("Error:", error);
+  }
   };
 
   return (

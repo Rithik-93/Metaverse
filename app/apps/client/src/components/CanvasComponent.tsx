@@ -37,6 +37,8 @@ const Arena = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [error, setError] = useState<string | null>(null);
 
+  const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3002';
+
   const requestTracker = useRef({
     counter: 0,
     pendingRequests: new Map<string, (response: any) => void>()
@@ -60,7 +62,7 @@ const Arena = () => {
 
     setParams({ token, spaceId });
 
-    wsRef.current = new WebSocket('ws://localhost:3001');
+    wsRef.current = new WebSocket(WS_URL);
     const ws = wsRef.current;
 
     ws.onopen = () => {
@@ -104,7 +106,6 @@ const Arena = () => {
     return requestId;
   };
 
-  // Comprehensive message handler
   const handleWebSocketMessage = (message: WSMessage) => {
 
     switch (message.type) {
@@ -155,7 +156,6 @@ const Arena = () => {
     setUsers(newUsers);
   };
 
-  // Handle new user joining
   const handleUserJoined = (payload: User) => {
     setUsers(prev => {
       const newUsers = new Map(prev);
@@ -189,7 +189,6 @@ const Arena = () => {
     } : null);
   };
 
-  // Handle user leaving
   const handleUserLeft = (payload: { id: string }) => {
     setUsers(prev => {
       const newUsers = new Map(prev);
@@ -198,7 +197,6 @@ const Arena = () => {
     });
   };
 
-  // Handle WebSocket errors
   const handleError = (payload: ErrorPayload) => {
     // Handle specific move-related errors
     if (payload.code === 'MOVE_OUT_OF_BOUNDS' ||
@@ -294,7 +292,7 @@ const Arena = () => {
 
     if (currentUser) {
       ctx.beginPath();
-      ctx.fillStyle = '#FF6B6B';
+      ctx.fillStyle = '#1E1E2E';
       ctx.arc(currentUser.x * 50, currentUser.y * 50, 20, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = '#000';
@@ -330,8 +328,8 @@ const Arena = () => {
             <h1 className="text-4xl font-bold text-gray-800">Arena</h1>
             <div
               className={`px-4 py-2 rounded-full text-sm font-medium ${connectionStatus === "connected"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
                 }`}
             >
               {connectionStatus}
